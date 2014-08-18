@@ -5,6 +5,10 @@ module Rally
         ENV['VM_NAME']
       end
 
+      def vm_runlist
+        ENV['VM_RUNLIST']
+      end
+
       def vm_base_template
         ENV['VM_BASE_TEMPLATE'] || '/Templates/c65.medium'
       end
@@ -30,7 +34,7 @@ module Rally
       end
 
       def vm_release_name
-        "#{vm_name}-lastSuccessfulBuild"
+        ENV['VM_RELEASE_NAME'] || "#{vm_name}-lastSuccessfulBuild"
       end
 
       def vm_release_folder_name

@@ -21,6 +21,7 @@ module VmDevelopment
         task :lint do
           puts 'Checking your VM project parameters'
           fail "ENV['VM_NAME'] must be set.  (e.g. 'onprem-corevm')" if ENV['VM_NAME'].to_s.empty?
+          fail "ENV['VM_RUNLIST'] must be set.  (e.g. 'onprem_corevm')" if ENV['VM_RUNLIST'].to_s.empty?
           fail "ENV['VM_SSH_PASSWORD'] must be set." if ENV['VM_SSH_PASSWORD'].to_s.empty?
 
           puts 'Checking your chef credentials'
@@ -88,7 +89,7 @@ module VmDevelopment
           with_sshkey(vm_ip_address) do |private_key_path, public_key_path|
             # Bootstrap with knife solo and converge
             Dir.chdir('./cookbook') do
-              shell_out! %Q{knife solo bootstrap "root@#{vm_ip_address}" --run-list 'recipe[onprem_orcavm]' -i #{private_key_path} --no-host-key-verify}
+              shell_out! %Q{knife solo bootstrap "root@#{vm_ip_address}" --run-list '#{vm_runlist}' -i #{private_key_path} --no-host-key-verify}
               shell_out! %Q{knife solo clean "root@#{vm_ip_address}" -i #{private_key_path} --no-host-key-verify}
             end
           end
@@ -98,7 +99,7 @@ module VmDevelopment
         end
 
         task :clone_for_test do
-          puts "Cloning VM for testing..."
+          puts "Cloning    #{vm_ci_folder_name}/#{vm_ci_test_name}..."
           vm_ci = monkey.vm! "#{vm_ci_folder_name}/#{vm_ci_name}"
           vm_ci_test = vm_ci.clone_to "#{vm_ci_folder_name}/#{vm_ci_test_name}"
           vm_ci_test.annotation = "[Test] #{vm_ci_test_name}"
@@ -117,6 +118,7 @@ module VmDevelopment
           RSpec::Core::Runner.run(['spec'])
         end
 
+        desc "Release [#{vm_ci_name}] to [#{vm_release_folder_name}/#{vm_release_name}]"
         task :release do
           vm_ci = monkey.vm! "#{vm_ci_folder_name}/#{vm_ci_name}"
           vm_ci.move_to! "#{vm_release_folder_name}/#{vm_release_name}"
