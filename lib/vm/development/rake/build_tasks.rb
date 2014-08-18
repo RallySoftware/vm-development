@@ -120,6 +120,7 @@ module VmDevelopment
 
         desc "Release [#{vm_ci_name}] to [#{vm_release_folder_name}/#{vm_release_name}]"
         task :release do
+          puts "Releasing  #{vm_release_folder_name}/#{vm_release_name}..."
           vm_ci = monkey.vm! "#{vm_ci_folder_name}/#{vm_ci_name}"
           vm_ci.move_to! "#{vm_release_folder_name}/#{vm_release_name}"
         end
