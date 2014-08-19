@@ -147,6 +147,21 @@ module VmDevelopment
           vm_ci.move_to! "#{vm_ci_folder_name}/#{vm_last_failed_name}" unless vm_ci.nil?
         end
 
+        desc "List IPs of all running VMs related to [#{vm_release_name}]"
+        task :ips do
+          [
+            "#{vm_release_folder_name}/#{vm_release_name}",
+            "#{vm_ci_folder_name}/#{vm_ci_name}",
+            "#{vm_ci_folder_name}/#{vm_ci_test_name}",
+            "#{vm_ci_folder_name}/#{vm_last_tested_name}",
+            "#{vm_ci_folder_name}/#{vm_last_failed_name}"
+          ].each do |vm_path|
+            vm = monkey.vm vm_path
+
+            puts "#{vm.guest_ip} #{vm_path}" unless vm.nil? || vm.guest_ip.nil?
+          end
+        end
+
       end
     end
   end
