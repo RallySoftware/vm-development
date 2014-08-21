@@ -140,11 +140,17 @@ module VmDevelopment
         task :cleanup do
           # release the last tested VM to lastTested
           vm_ci_test = monkey.vm "#{vm_ci_folder_name}/#{vm_ci_test_name}"
-          vm_ci_test.move_to! "#{vm_ci_folder_name}/#{vm_last_tested_name}" unless vm_ci_test.nil?
+          unless vm_ci_test.nil?
+            puts "Releasing #{vm_ci_folder_name}/#{vm_last_tested_name}"
+            vm_ci_test.move_to! "#{vm_ci_folder_name}/#{vm_last_tested_name}"
+          end
 
           # release the last failed VM if it's still around
           vm_ci = monkey.vm "#{vm_ci_folder_name}/#{vm_ci_name}"
-          vm_ci.move_to! "#{vm_ci_folder_name}/#{vm_last_failed_name}" unless vm_ci.nil?
+          unless vm_ci.nil?
+            puts "Releasing #{vm_ci_folder_name}/#{vm_last_failed_name}"
+            vm_ci.move_to! "#{vm_ci_folder_name}/#{vm_last_failed_name}"
+          end
         end
 
         desc "List IPs of all running VMs related to [#{vm_release_name}]"
