@@ -101,7 +101,7 @@ module VmDevelopment
         task :clone_for_test do
           puts "Cloning    #{vm_ci_folder_name}/#{vm_ci_test_name}..."
           vm_ci = monkey.vm! "#{vm_ci_folder_name}/#{vm_ci_name}"
-          vm_ci_test = vm_ci.clone_to "#{vm_ci_folder_name}/#{vm_ci_test_name}"
+          vm_ci_test = vm_ci.clone_to! "#{vm_ci_folder_name}/#{vm_ci_test_name}"
           vm_ci_test.annotation = "[Test] #{vm_ci_test_name}"
           vm_ci_test.property :boot_for_test, 'true'
           vm_ci_test.start
