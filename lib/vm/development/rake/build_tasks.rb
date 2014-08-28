@@ -115,7 +115,8 @@ module VmDevelopment
           ENV['REMOTE_HOST'] = vm_ci_test.guest_ip
           ENV['SPEC_USER'] = 'root'
           ENV['SPEC_PASSWORD'] = vm_ssh_password
-          RSpec::Core::Runner.run(['spec'])
+          ret = RSpec::Core::Runner.run(['spec'])
+          raise('specs failed') unless ret == 0
         end
 
         desc "Release [#{vm_ci_name}] to [#{vm_release_folder_name}/#{vm_release_name}]"
