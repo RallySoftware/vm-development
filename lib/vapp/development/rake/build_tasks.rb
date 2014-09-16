@@ -84,7 +84,11 @@ module VappDevelopment
         task :spec do; end
 
         desc "Release [#{vapp_ci_name}] to [#{vapp_release_folder_name}/#{vapp_release_name}]"
-        task :release do; end
+        task :release do
+          puts "Releasing  #{vapp_release_folder_name}/#{vapp_release_name}..."
+          vapp_ci = monkey.vapp! "#{vapp_ci_folder_name}/#{vapp_ci_name}"
+          vapp_ci.move_to! "#{vapp_release_folder_name}/#{vapp_release_name}"
+        end
 
         desc "Create, test and release vApp [#{vapp_name}]"
         task :ci do
