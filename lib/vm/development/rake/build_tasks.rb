@@ -43,6 +43,7 @@ module VmDevelopment
         desc "Builds [#{vm_ci_name}] and [#{vm_ci_test_name}]"
         task build: [:clean, :build_vm_ci, :clone_for_test]
 
+        desc "Cleans [#{vm_ci_name}] and [#{vm_ci_test_name}]"
         task :clean do
           vm_ci_path = "#{vm_ci_folder_name}/#{vm_ci_name}"
           puts "Destroying #{vm_ci_path}..."

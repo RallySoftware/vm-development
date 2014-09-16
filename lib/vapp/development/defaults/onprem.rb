@@ -1,0 +1,1 @@
+ENV['VAPP_RELEASE_FOLDER_NAME'] ||= '/RallyVM'
