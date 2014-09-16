@@ -81,7 +81,8 @@ module VappDevelopment
         end
 
         desc "Run specs on [#{vapp_ci_test_name}]"
-        task :spec do; end
+        task :spec do
+        end
 
         desc "Release [#{vapp_ci_name}] to [#{vapp_release_folder_name}/#{vapp_release_name}]"
         task :release do
@@ -102,7 +103,21 @@ module VappDevelopment
         end
 
         desc "Deploy [#{vapp_ci_test_name}] to [#{vapp_last_tested_name}], and [#{vapp_ci_name}] to [#{vapp_last_failed_name}]"
-        task :cleanup do; end
+        task :cleanup do
+          # release the last tested vApp to lastTested
+          vapp_ci_test = monkey.vapp! "#{vapp_ci_folder_name}/#{vapp_ci_test_name}"
+          unless vapp_ci_test.nil?
+            puts "Releasing #{vapp_ci_folder_name}/#{vapp_last_tested_name}"
+            vapp_ci_test.move_to! "#{vapp_ci_folder_name}/#{vapp_last_tested_name}"
+          end
+
+          # release the last failed vApp if it's still around
+          vapp_ci = monkey.vapp! "#{vapp_ci_folder_name}/#{vapp_ci_name}"
+          unless vapp_ci.nil?
+            puts "Releasing #{vapp_ci_folder_name}/#{vapp_last_failed_name}"
+            vapp_ci.move_to! "#{vapp_ci_folder_name}/#{vapp_last_failed_name}"
+          end
+        end
       end
     end
   end
