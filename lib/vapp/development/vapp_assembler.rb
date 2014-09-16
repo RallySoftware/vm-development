@@ -31,23 +31,6 @@ module VappDevelopment
         destroy_if_exists vapp_id
       end
 
-      def clone_for_test(vapp_id, opts={power_on: true})
-        vapp = vapp_instance vapp_id
-
-        #clone = vapp.clone_to "#{vapp.name}-test", vmFolder: vapp.parentFolder
-        clone = vapp.clone_to "#{vapp_id[:name]}-test", vmFolder: vapp_id[:parentFolder]
-
-        clone.property(:boot_for_test, true)
-
-        clone.PowerOnVApp_Task.wait_for_completion if opts[:power_on] && clone.summary.vAppState != 'started'
-
-        if opts[:power_on] && opts[:wait_for_port]
-          sleep(5) until clone.vm.all? { |vm| vm.port_ready?(opts[:wait_for_port], 2) }
-        end
-
-        clone
-      end
-
       def move(vapp_id, destination)
         destroy_if_exists destination
         vapp = vapp_instance vapp_id
@@ -84,7 +67,7 @@ module VappDevelopment
 
       def default_opts
         {
-          working_folder: 'Template CI'
+          working_folder: 'vApp_CI'
         }
       end
 

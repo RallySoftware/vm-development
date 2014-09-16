@@ -71,8 +71,13 @@ module VappDevelopment
         end
 
         task :clone_for_test do
-          # puts "Cloning    #{vapp_ci_folder_name}/#{vapp_ci_test_name}, waiting for port 22 on all VMs"
-          #VappDevelopment::VAppAssembler.clone_for_test(@vapp_spec, name: vapp_ci_test_name, power_on: true, wait_for_port: 22 )
+          puts "Cloning    #{vapp_ci_folder_name}/#{vapp_ci_test_name}, waiting for port 22 on all VMs"
+          vapp_ci = monkey.vapp "#{vapp_ci_folder_name}/#{vapp_ci_name}"
+          vapp_ci_test = vapp_ci.clone_to "#{vapp_ci_folder_name}/#{vapp_ci_test_name}", vmFolder: vapp_ci.parentFolder
+
+          vapp_ci_test.property(:boot_for_test, true)
+          vapp_ci_test.start
+          vapp_ci_test.wait_for_ports(22)
         end
 
         desc "Run specs on [#{vapp_ci_test_name}]"
