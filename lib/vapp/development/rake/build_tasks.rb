@@ -77,11 +77,30 @@ module VappDevelopment
 
           vapp_ci_test.property(:boot_for_test, true)
           vapp_ci_test.start
-          vapp_ci_test.wait_for_ports(22)
+          vapp_ci_test.wait_for_port(22)
+        end
+
+        desc ''
+        RSpec::Core::RakeTask.new(:spec_assembly) do |task|
+          task.pattern = 'spec/assembly'
+        end
+
+        desc ''
+        RSpec::Core::RakeTask.new(:spec_integration) do |task|
+          task.pattern = 'spec/integration'
         end
 
         desc "Run specs on [#{vapp_ci_test_name}]"
         task :spec do
+          ENV['VAPP_NAME'] = vapp_ci_test_name
+          ENV['VAPP_FOLDER'] = vapp_ci_folder_name
+          ENV['VMONKEY_YML'] ||= '~/.chef/vsphere.yml'
+
+          puts "Running assembly specs on #{vapp_ci_folder_name}/#{vapp_ci_test_name}..."
+          Rake::Task['vapp:spec_assembly'].invoke
+
+          puts "Running integration specs on #{vapp_ci_folder_name}/#{vapp_ci_test_name}..."
+          Rake::Task['vapp:spec_integration'].invoke
         end
 
         desc "Release [#{vapp_ci_name}] to [#{vapp_release_folder_name}/#{vapp_release_name}]"
@@ -91,14 +110,14 @@ module VappDevelopment
           vapp_ci.move_to! "#{vapp_release_folder_name}/#{vapp_release_name}"
         end
 
-        desc "Create, test and release vApp [#{vapp_name}]"
+        desc "Build, test and release vApp [#{vapp_name}]"
         task :ci do
           begin
-            ['vm:lint', 'vm:build_vapp_ci', 'vm:clone_for_test', 'vm:spec', 'vm:release'].each do |task|
+            ['vapp:lint', 'vapp:build_vapp_ci', 'vapp:clone_for_test', 'vapp:spec', 'vapp:release'].each do |task|
               Rake::Task[task].invoke
             end
           ensure
-            Rake::Task['vm:cleanup'].invoke
+            Rake::Task['vapp:cleanup'].invoke
           end
         end
 
@@ -112,7 +131,7 @@ module VappDevelopment
           end
 
           # release the last failed vApp if it's still around
-          vapp_ci = monkey.vapp! "#{vapp_ci_folder_name}/#{vapp_ci_name}"
+          vapp_ci = monkey.vapp "#{vapp_ci_folder_name}/#{vapp_ci_name}"
           unless vapp_ci.nil?
             puts "Releasing #{vapp_ci_folder_name}/#{vapp_last_failed_name}"
             vapp_ci.move_to! "#{vapp_ci_folder_name}/#{vapp_last_failed_name}"
