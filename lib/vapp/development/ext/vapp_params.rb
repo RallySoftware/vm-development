@@ -5,6 +5,10 @@ module Rally
         @vapp_spec[:name]
       end
 
+      def is_ci?
+        ! ENV['BUILD_NUMBER'].to_s.empty?
+      end
+
       def vapp_ci_name
         "#{vapp_name}-#{ENV['BUILD_NUMBER'] || 'dev'}"
       end
