@@ -115,17 +115,14 @@ module VappDevelopment
       end
 
       def set_network_properties(opts, vapp_descriptor, vapp)
-        ## TODO - remove defaultValue for netmask, default_gateway, dns1, dns2, dns_search_domain, ip_address_*
-        ##        do this when the client VMs have vapptool incorporated into their startup
-
-        vapp.property :netmask,           nil, defaultValue: '0.0.0.0', type: 'ip'
-        vapp.property :default_gateway,   nil, defaultValue: '0.0.0.0', type: 'ip'
-        vapp.property :dns1,              nil, defaultValue: '0.0.0.0', type: 'ip'
-        vapp.property :dns2,              nil, defaultValue: '0.0.0.0', type: 'ip'
-        vapp.property :dns_search_domain, nil, defaultValue: 'f4tech.com'
+        vapp.property :netmask,           nil, type: 'ip'
+        vapp.property :default_gateway,   nil, type: 'ip'
+        vapp.property :dns1,              nil, type: 'ip'
+        vapp.property :dns2,              nil, type: 'ip'
+        vapp.property :dns_search_domain, nil
 
         vapp_descriptor[:vms].each do |veem|
-          vapp.property "ip_address_#{veem[:name]}".to_sym, nil, defaultValue: '0.0.0.0', type: 'ip'
+          vapp.property "ip_address_#{veem[:name]}".to_sym, nil, type: 'ip'
 
           vm = vapp.find_vm! "#{vapp.name}-#{veem[:name]}"
           vm.property :vm_name, nil, defaultValue: veem[:name], userConfigurable: false
