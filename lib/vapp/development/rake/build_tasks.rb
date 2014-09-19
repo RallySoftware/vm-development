@@ -70,12 +70,52 @@ module VappDevelopment
           VappDevelopment::VAppAssembler.assemble(@vapp_spec)
         end
 
+        def range_to_use
+          range_to_use = is_ci? ? @vapp_spec[:network_properties][:build_ci_test] : @vapp_spec[:network_properties][:build_dev_test]
+
+          # what IP range is -lastTested using right now?
+          lastTested = monkey.vapp "#{vapp_ci_folder_name}/#{vapp_last_tested_name}"
+          if lastTested
+            lastTested_ip = lastTested.vAppConfig.property.find { |p| p.props[:id].start_with? 'ip_address_' }
+            if lastTested_ip
+              lastTested_ip = lastTested.property lastTested_ip[:id]
+              if lastTested_ip
+                range_to_use.each do |k,v|
+                  next unless k.to_s.start_with?('ip_address_')
+                  return @vapp_spec[:network_properties][:build_alternate] if v == lastTested_ip
+                end
+              end
+            end
+          end
+
+          return range_to_use
+        end
+
+        def apply_network_properties(vapp)
+          return unless @vapp_spec[:network_properties]
+          range = range_to_use
+          vapp.property :netmask,           range[:netmask]
+          vapp.property :default_gateway,   range[:default_gateway]
+          vapp.property :dns1,              range[:dns1]
+          vapp.property :dns2,              range[:dns2]
+          vapp.property :dns_search_domain, range[:dns_search_domain]
+
+          @vapp_spec[:vms].each do |veem|
+            ip_address_vm = "ip_address_#{veem[:name]}".to_sym
+            vapp.property ip_address_vm.to_sym, range[ip_address_vm]
+          end
+        end
+
         task :clone_for_test do
-          puts "Cloning    #{vapp_ci_folder_name}/#{vapp_ci_test_name}, waiting for port 22 on all VMs"
+          puts "Cloning    #{vapp_ci_folder_name}/#{vapp_ci_test_name}"
           vapp_ci = monkey.vapp "#{vapp_ci_folder_name}/#{vapp_ci_name}"
           vapp_ci_test = vapp_ci.clone_to "#{vapp_ci_folder_name}/#{vapp_ci_test_name}", vmFolder: vapp_ci.parentFolder
 
           vapp_ci_test.property(:boot_for_test, true)
+
+          apply_network_properties(vapp_ci_test)
+
+          puts "Starting   #{vapp_ci_folder_name}/#{vapp_ci_test_name}, waiting for port 22 on all VMs"
           vapp_ci_test.start
           vapp_ci_test.wait_for_port(22)
         end
@@ -137,6 +177,26 @@ module VappDevelopment
             vapp_ci.move_to! "#{vapp_ci_folder_name}/#{vapp_last_failed_name}"
           end
         end
+
+        desc "List assigned IPs of all running VMs related to [#{vapp_release_name}]"
+        task :ips do
+          [
+            "#{vapp_release_folder_name}/#{vapp_release_name}",
+            "#{vapp_ci_folder_name}/#{vapp_ci_name}",
+            "#{vapp_ci_folder_name}/#{vapp_ci_test_name}",
+            "#{vapp_ci_folder_name}/#{vapp_last_tested_name}",
+            "#{vapp_ci_folder_name}/#{vapp_last_failed_name}"
+          ].each do |vapp_path|
+            vapp = monkey.vapp vapp_path
+            next unless vapp
+
+            vapp.vAppConfig.property.find_all { |p| p.props[:id].start_with? 'ip_address_' }.each do |ip_prop|
+              ip = vapp.property ip_prop[:id]
+              puts "[ #{ip} ] #{vapp_path}/#{ip_prop[:id]}"
+            end
+          end
+        end
+
       end
     end
   end

@@ -13,55 +13,10 @@ module VappDevelopment
 
         set_entity_config(opts, vapp_descriptor[:vms], vapp)
 
+        set_network_properties(opts, vapp_descriptor, vapp) if vapp_descriptor[:network_properties]
+
         vapp
       end
-
-      def vapp_instance(vapp_id)
-        vapp_path = "#{vapp_id[:folder]}/#{vapp_id[:name]}"
-        monkey.vapp vapp_path
-      end
-
-      def destroy_if_exists(vapp_id)
-        vapp = vapp_instance vapp_id
-        vapp.destroy if vapp
-      end
-
-      def destroy(vapp_id)
-        deploy_lastTested vapp_id
-        destroy_if_exists vapp_id
-      end
-
-      def move(vapp_id, destination)
-        destroy_if_exists destination
-        vapp = vapp_instance vapp_id
-        if vapp
-          dest_folder = monkey.folder(destination[:folder])
-          dest_folder.MoveIntoFolder_Task(:list => [vapp]).wait_for_completion unless vapp_id[:folder].nil? || vapp_id[:folder] == destination[:folder]
-          vapp.Rename_Task(newName: destination[:name]).wait_for_completion unless vapp_id[:name].nil? || vapp_id[:name] == destination[:name]
-        end
-      end
-
-      def deploy(vapp_id, destination)
-        raise 'Name and/or folder need to be different for deployment.' if (vapp_id[:folder] == destination[:folder]) && (vapp_id[:name] == destination[:name])
-        move vapp_id, destination
-        deploy_lastTested vapp_id
-        vapp_instance destination
-      end
-
-      def vapp_test_instance(vapp_id)
-        vapp_instance(name: "#{vapp_id[:name]}-test", folder: vapp_id[:folder])
-      end
-
-      def deploy_lastTested(vapp_id)
-        vapp = vapp_test_instance(vapp_id)
-        if vapp
-          move(
-            {name: vapp.name, folder: vapp_id[:folder]},
-            {name: "#{vapp_id[:prefix]}-lastTested", folder: vapp_id[:folder]}
-            )
-        end
-      end
-
 
       private
 
@@ -157,6 +112,22 @@ module VappDevelopment
 
       def product_spec(product)
         [ RbVmomi::VIM.VAppProductSpec(info: product.merge({key: 0}), operation: 'add') ]
+      end
+
+      def set_network_properties(opts, vapp_descriptor, vapp)
+        vapp.property :netmask,           nil, type: 'ip'
+        vapp.property :default_gateway,   nil, type: 'ip'
+        vapp.property :dns1,              nil, type: 'ip'
+        vapp.property :dns2,              nil, type: 'ip'
+        vapp.property :dns_search_domain, nil
+
+        vapp_descriptor[:vms].each do |veem|
+          vapp.property "ip_address_#{veem[:name]}".to_sym, nil, type: 'ip'
+
+          vm = vapp.find_vm! "#{vapp.name}-#{veem[:name]}"
+          vm.property :vm_name, nil, defaultValue: veem[:name], userConfigurable: false
+        end
+
       end
 
     end
