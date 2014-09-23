@@ -74,7 +74,7 @@ module VmDevelopment
           shell_out! %Q{knife ssh "#{vm_ip_address}" 'cat ~/.ssh/authorized_keys' -m --ssh-user root --ssh-password '#{vm_ssh_password}' --no-host-key-verify}
         end
 
-        task :build_vm_ci do
+        task :prepare do
           base_template = monkey.vm! vm_base_template
           puts "Cloning    #{vm_ci_folder_name}/#{vm_ci_name}..."
           vm_ci = base_template.clone_to "#{vm_ci_folder_name}/#{vm_ci_name}"
@@ -90,14 +90,34 @@ module VmDevelopment
           with_sshkey(vm_ip_address) do |private_key_path, public_key_path|
             # Bootstrap with knife solo and converge
             Dir.chdir('./cookbook') do
-              shell_out! %Q{knife solo bootstrap "root@#{vm_ip_address}" --run-list '#{vm_runlist}' -i #{private_key_path} --no-host-key-verify}
-              shell_out! %Q{knife solo clean "root@#{vm_ip_address}" -i #{private_key_path} --no-host-key-verify}
+              shell_out! %Q{knife solo prepare "root@#{vm_ip_address}" -i #{private_key_path} --no-host-key-verify}
             end
           end
+        end
 
+        task :converge do
+          vm_ci = monkey.vm! "#{vm_ci_folder_name}/#{vm_ci_name}"
+          vm_ip_address = vm_ci.guest_ip
+          with_sshkey(vm_ip_address) do |private_key_path, public_key_path|
+            # Bootstrap with knife solo and converge
+            Dir.chdir('./cookbook') do
+              shell_out! %Q{knife ssh "#{vm_ip_address}" 'rm -f /var/chef/cache/chef-client-running.pid' -m -i #{private_key_path} --no-host-key-verify}
+              shell_out! %Q{knife solo cook "root@#{vm_ip_address}" -o '#{vm_runlist}' -i #{private_key_path} --no-host-key-verify}
+            end
+          end
+        end
+
+        task :finalize do
+          vm_ci = monkey.vm! "#{vm_ci_folder_name}/#{vm_ci_name}"
+          vm_ip_address = vm_ci.guest_ip
+          Dir.chdir('./cookbook') do
+            shell_out! %Q{knife solo clean "root@#{vm_ip_address}" --ssh-password '#{vm_ssh_password}' --no-host-key-verify}
+          end
           vm_ci.stop
           vm_ci.MarkAsTemplate
         end
+
+        task build_vm_ci: ['vm:prepare', 'vm:converge', 'vm:finalize']
 
         task :clone_for_test do
           puts "Cloning    #{vm_ci_folder_name}/#{vm_ci_test_name}..."
