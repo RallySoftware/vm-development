@@ -131,16 +131,16 @@ module VappDevelopment
         end
 
         task :spec_assembly do
-          ENV['VAPP_NAME'] = vapp_ci_name
-          ENV['VAPP_FOLDER'] = vapp_ci_folder_name
+          ENV['VAPP_NAME'] ||= vapp_ci_name
+          ENV['VAPP_FOLDER'] ||= vapp_ci_folder_name
           ENV['VMONKEY_YML'] ||= '~/.chef/vsphere.yml'
           puts "Running assembly specs on #{vapp_ci_folder_name}/#{vapp_ci_test_name}..."
           Rake::Task['vapp:rspec_assembly'].invoke
         end
 
         task :spec_integration do
-          ENV['VAPP_NAME'] = vapp_ci_test_name
-          ENV['VAPP_FOLDER'] = vapp_ci_folder_name
+          ENV['VAPP_NAME'] ||= vapp_ci_test_name
+          ENV['VAPP_FOLDER'] ||= vapp_ci_folder_name
           ENV['VMONKEY_YML'] ||= '~/.chef/vsphere.yml'
           puts "Running integration specs on #{vapp_ci_folder_name}/#{vapp_ci_test_name}..."
           Rake::Task['vapp:rspec_integration'].invoke
