@@ -50,7 +50,7 @@ module VappDevelopment
         end
 
         desc "Builds [#{vapp_ci_name}] and [#{vapp_ci_test_name}]"
-        task build: [:clean, :build_vapp_ci, :clone_for_test]
+        task build: [:clean, :assemble, :clone_for_test]
 
         desc "Cleans [#{vapp_ci_name}] and [#{vapp_ci_test_name}]"
         task :clean do
@@ -65,7 +65,7 @@ module VappDevelopment
           vapp_ci_test.destroy if vapp_ci_test
         end
 
-        task :build_vapp_ci do
+        task :assemble do
           puts "Assembling #{vapp_ci_folder_name}/#{vapp_ci_name}..."
           VappDevelopment::VAppAssembler.assemble(@vapp_spec)
         end
@@ -121,27 +121,33 @@ module VappDevelopment
         end
 
         desc ''
-        RSpec::Core::RakeTask.new(:spec_assembly) do |task|
+        RSpec::Core::RakeTask.new(:rspec_assembly) do |task|
           task.pattern = 'spec/assembly'
         end
 
         desc ''
-        RSpec::Core::RakeTask.new(:spec_integration) do |task|
+        RSpec::Core::RakeTask.new(:rspec_integration) do |task|
           task.pattern = 'spec/integration'
         end
 
-        desc "Run specs on [#{vapp_ci_test_name}]"
-        task :spec do
+        task :spec_assembly do
+          ENV['VAPP_NAME'] = vapp_ci_name
+          ENV['VAPP_FOLDER'] = vapp_ci_folder_name
+          ENV['VMONKEY_YML'] ||= '~/.chef/vsphere.yml'
+          puts "Running assembly specs on #{vapp_ci_folder_name}/#{vapp_ci_test_name}..."
+          Rake::Task['vapp:rspec_assembly'].invoke
+        end
+
+        task :spec_integration do
           ENV['VAPP_NAME'] = vapp_ci_test_name
           ENV['VAPP_FOLDER'] = vapp_ci_folder_name
           ENV['VMONKEY_YML'] ||= '~/.chef/vsphere.yml'
-
-          puts "Running assembly specs on #{vapp_ci_folder_name}/#{vapp_ci_test_name}..."
-          Rake::Task['vapp:spec_assembly'].invoke
-
           puts "Running integration specs on #{vapp_ci_folder_name}/#{vapp_ci_test_name}..."
-          Rake::Task['vapp:spec_integration'].invoke
+          Rake::Task['vapp:rspec_integration'].invoke
         end
+
+        desc "Run specs on [#{vapp_ci_test_name}]"
+        task :spec => ['vapp:spec_assembly', 'vapp:spec_integration']
 
         desc "Release [#{vapp_ci_name}] to [#{vapp_release_folder_name}/#{vapp_release_name}]"
         task :release do
@@ -153,7 +159,7 @@ module VappDevelopment
         desc "Build, test and release vApp [#{vapp_name}]"
         task :ci do
           begin
-            ['vapp:lint', 'vapp:build_vapp_ci', 'vapp:clone_for_test', 'vapp:spec', 'vapp:release'].each do |task|
+            ['vapp:lint', 'vapp:assemble', 'vapp:clone_for_test', 'vapp:spec', 'vapp:release'].each do |task|
               Rake::Task[task].invoke
             end
           ensure

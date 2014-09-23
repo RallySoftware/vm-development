@@ -13,6 +13,8 @@ module VappDevelopment
 
         set_entity_config(opts, vapp_descriptor[:vms], vapp)
 
+        set_network(opts, vapp_descriptor, vapp) if vapp_descriptor[:network]
+
         set_network_properties(opts, vapp_descriptor, vapp) if vapp_descriptor[:network_properties]
 
         vapp
@@ -114,6 +116,22 @@ module VappDevelopment
         [ RbVmomi::VIM.VAppProductSpec(info: product.merge({key: 0}), operation: 'add') ]
       end
 
+      def set_network(opts, vapp_descriptor, vapp)
+        network_name = vapp_descriptor[:network]
+        vapp.vm.each do |vm|
+          nics = vm.config.hardware.device.select{ |d| d.is_a? RbVmomi::VIM.VirtualEthernetCard.class }
+          nics.each do |nic|
+            unless nic[:backing][:deviceName] == network_name
+              nic[:backing] = RbVmomi::VIM.VirtualEthernetCardNetworkBackingInfo(deviceName: network_name)
+              change_spec = RbVmomi::VIM.VirtualMachineConfigSpec( deviceChange: [
+                RbVmomi::VIM.VirtualDeviceConfigSpec(device: nic, operation: 'edit')
+                ])
+              vm.ReconfigVM_Task spec: change_spec
+            end
+          end
+        end
+      end
+
       def set_network_properties(opts, vapp_descriptor, vapp)
         vapp.property :netmask,           nil, type: 'ip'
         vapp.property :default_gateway,   nil, type: 'ip'
@@ -127,7 +145,6 @@ module VappDevelopment
           vm = vapp.find_vm! "#{vapp.name}-#{veem[:name]}"
           vm.property :vm_name, nil, defaultValue: veem[:name], userConfigurable: false
         end
-
       end
 
     end
