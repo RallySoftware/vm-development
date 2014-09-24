@@ -126,7 +126,7 @@ module VappDevelopment
               change_spec = RbVmomi::VIM.VirtualMachineConfigSpec( deviceChange: [
                 RbVmomi::VIM.VirtualDeviceConfigSpec(device: nic, operation: 'edit')
                 ])
-              vm.ReconfigVM_Task spec: change_spec
+              vm.ReconfigVM_Task(spec: change_spec).wait_for_completion
             end
           end
         end
