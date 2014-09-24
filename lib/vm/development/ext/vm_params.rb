@@ -1,3 +1,5 @@
+require 'chef-vault'
+
 module Rally
   module Mixin
     module VmParams
@@ -43,6 +45,15 @@ module Rally
 
       def vm_ssh_password
         ENV['VM_SSH_PASSWORD']
+      end
+
+      def vm_vault_password(vault = ENV['VM_VAULT'].to_s)
+        return vm_ssh_password if vault.empty?
+
+        knife_home = ENV['KNIFE_HOME'] || "#{ENV['HOME']}/.chef"
+        ChefVault.load_config("#{knife_home}/knife.rb")
+        item = ChefVault::Item.load(vault, 'spec_user')
+        item['user']['password'].to_s.strip
       end
     end
   end

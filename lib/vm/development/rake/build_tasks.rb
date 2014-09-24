@@ -111,7 +111,7 @@ module VmDevelopment
           vm_ci = monkey.vm! "#{vm_ci_folder_name}/#{vm_ci_name}"
           vm_ip_address = vm_ci.guest_ip
           Dir.chdir('./cookbook') do
-            shell_out! %Q{knife solo clean "root@#{vm_ip_address}" --ssh-password '#{vm_ssh_password}' --no-host-key-verify}
+            shell_out! %Q{knife solo clean "root@#{vm_ip_address}" --ssh-password '#{vm_vault_password}' --no-host-key-verify}
           end
           vm_ci.stop
           vm_ci.MarkAsTemplate

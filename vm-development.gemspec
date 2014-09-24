@@ -26,6 +26,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'rspec-its', '~>1.0.1'
   spec.add_dependency 'serverspec', '~>1.7'
   spec.add_dependency 'chef', '~>11.12'
+  spec.add_dependency 'chef-vault', '~>2.1'
   spec.add_dependency 'knife-solo', '~> 0.4.1'
   spec.add_dependency 'berkshelf', '3.1.1'
   spec.add_dependency 'vmonkey', '~> 0.8'
