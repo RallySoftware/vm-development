@@ -102,7 +102,7 @@ module VmDevelopment
             # Bootstrap with knife solo and converge
             Dir.chdir('./cookbook') do
               shell_out! %Q{knife ssh "#{vm_ip_address}" 'rm -f /var/chef/cache/chef-client-running.pid' -m -i #{private_key_path} --no-host-key-verify}
-              shell_out! %Q{knife solo cook "root@#{vm_ip_address}" -o '#{vm_runlist}' -i #{private_key_path} --no-host-key-verify -VV}
+              shell_out! %Q{knife solo cook "root@#{vm_ip_address}" -o '#{vm_runlist}' -i #{private_key_path} --no-host-key-verify -V}
             end
           end
         end
@@ -135,7 +135,7 @@ module VmDevelopment
           vm_ci_test = monkey.vm! "#{vm_ci_folder_name}/#{vm_ci_test_name}"
           ENV['REMOTE_HOST'] = vm_ci_test.guest_ip
           ENV['SPEC_USER'] = 'root'
-          ENV['SPEC_PASSWORD'] = vm_ssh_password
+          ENV['SPEC_PASSWORD'] = vm_vault_password
           ret = RSpec::Core::Runner.run(['spec'])
           raise('specs failed') unless ret == 0
         end

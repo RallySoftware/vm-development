@@ -35,9 +35,16 @@ def wait_until(timeout=2)
   end
 end
 
+## returns the primary ip address associated to the given interface
 def ip(interface='eth0')
   %Q{`ifconfig #{interface} | grep 'inet addr:' | cut -d: -f2 | cut -d' ' -f1`}
 end
+
+## validates that a password given on stdin hashes to match the value stored in /etc/shadow
+def chkpasswd(username)
+  %Q{openssl passwd -1 -stdin -salt `grep #{username} /etc/shadow | awk -F'$' '{print $3}'` | grep -q -F -f - /etc/shadow}
+end
+
 
 RSpec.configure do |c|
   c.formatter = :documentation
