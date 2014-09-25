@@ -21,7 +21,7 @@ module VappDevelopment
           task @deploy_spec[:name] do
             source_path = @deploy_spec[:source]
             target_path = @deploy_spec[:target]
-            puts "[#{@deploy_spec[:name]}] deploying [#{source_path}] from [#{target_path}]"
+            puts "[#{@deploy_spec[:name]}] deploying [#{target_path}] from [#{source_path}]"
 
             source = monkey.vapp! source_path
             target = source.clone_to! target_path
