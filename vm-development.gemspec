@@ -22,9 +22,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rake'
 
   spec.add_dependency 'mixlib-shellout', '~> 1.4'
-  spec.add_dependency 'rspec', '~>2.14'
   spec.add_dependency 'rspec-its', '~>1.0.1'
-  spec.add_dependency 'serverspec', '~>1.7'
+  spec.add_dependency 'serverspec', '~>2.0'
   spec.add_dependency 'chef', '~>11.12'
   spec.add_dependency 'chef-vault', '~>2.1'
   spec.add_dependency 'knife-solo', '~> 0.4.1'

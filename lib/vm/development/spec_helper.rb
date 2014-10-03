@@ -22,8 +22,7 @@ raise 'SPEC_PASSWORD not set' if spec_password.empty?
 puts "Running specs remotely on [#{spec_user}@#{remote_host}]"
 remote_host_ssh(remote_host, spec_user, spec_password).close
 
-include Serverspec::Helper::DetectOS
-include Serverspec::Helper::Ssh
+set :backend, :ssh
 
 def wait_until(timeout=2)
   time_to_stop = Time.now + timeout
@@ -51,10 +50,7 @@ RSpec.configure do |c|
   c.color = true
   c.tty = true
   c.before :all do
-    if c.host != remote_host
-      c.ssh.close if c.ssh
-      c.host = remote_host
-      c.ssh = remote_host_ssh c.host, spec_user, spec_password
-    end
+    set :host, remote_host
+    set :ssh_options, user: spec_user, password: spec_password
   end
 end
