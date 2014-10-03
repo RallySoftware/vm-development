@@ -25,6 +25,7 @@ module VappDevelopment
 
             source = monkey.vapp! source_path
             target = source.clone_to! target_path
+            target.network = @deploy_spec[:network] if @deploy_spec[:network]
             target.set_properties @deploy_spec[:properties] if @deploy_spec[:properties]
 
             puts "[#{@deploy_spec[:name]}] starting and and waiting for port 22 on all VMs"
@@ -35,6 +36,18 @@ module VappDevelopment
               puts "#{vm.guest_ip}\t#{vm.name}"
             end
             puts "[#{@deploy_spec[:name]}] deployed"
+          end
+
+          desc "Destroys #{@deploy_spec[:name]}"
+          task "#{@deploy_spec[:name]}:destroy" do
+            target_path = @deploy_spec[:target]
+            target = monkey.vapp target_path
+            if target
+              puts "[#{@deploy_spec[:name]}] destroying [#{target_path}]"
+              target.destroy
+            else
+              puts "[#{@deploy_spec[:name]}] nothing to destroy"
+            end
           end
         end
       end

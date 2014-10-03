@@ -28,5 +28,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'chef-vault', '~>2.1'
   spec.add_dependency 'knife-solo', '~> 0.4.1'
   spec.add_dependency 'berkshelf', '3.1.1'
-  spec.add_dependency 'vmonkey', '~> 0.9'
+  spec.add_dependency 'vmonkey', '~> 0.10.0.pre'
 end
