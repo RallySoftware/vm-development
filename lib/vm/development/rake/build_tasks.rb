@@ -102,7 +102,7 @@ module VmDevelopment
             # Bootstrap with knife solo and converge
             Dir.chdir('./cookbook') do
               shell_out! %Q{knife ssh "#{vm_ip_address}" 'rm -f /var/chef/cache/chef-client-running.pid' -m -i #{private_key_path} --no-host-key-verify}
-              shell_out! %Q{knife solo cook "root@#{vm_ip_address}" -o '#{vm_runlist}' -i #{private_key_path} --no-host-key-verify -V}
+              shell_out! %Q{knife solo cook "root@#{vm_ip_address}" -o '#{vm_runlist}' -i #{private_key_path} --no-host-key-verify}
             end
           end
         end
