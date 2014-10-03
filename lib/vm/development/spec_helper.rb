@@ -23,6 +23,7 @@ puts "Running specs remotely on [#{spec_user}@#{remote_host}]"
 remote_host_ssh(remote_host, spec_user, spec_password).close
 
 set :backend, :ssh
+set :backend, :exec
 
 def wait_until(timeout=2)
   time_to_stop = Time.now + timeout
